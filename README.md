@@ -10,6 +10,28 @@ Duplicates a role's permissions to another role by name. If the target role
 already exists its permissions are updated in place. If it does not exist a new
 role is created.
 
+### `set-folder-permissions.sh`
+
+Sets channel permission overwrites for the Organizer, Volunteer, and Nonprofit
+roles on a category (folder) channel and every child channel inside it.
+
+Role names are constructed from the year you provide:
+
+| Argument | Role name |
+|----------|-----------|
+| `2026`   | `2026 Organizer`, `2026 Volunteer`, `2026 Nonprofit` |
+
+**Permission sets applied:**
+
+| Role | Permissions allowed |
+|------|---------------------|
+| Organizer | View Channel, Send Messages, Manage Messages, Manage Threads, Embed Links, Attach Files, Read Message History, Add Reactions, Mention Everyone, Create Public Threads, Send Messages in Threads |
+| Volunteer | View Channel, Send Messages, Embed Links, Attach Files, Read Message History, Add Reactions, Send Messages in Threads |
+| Nonprofit | Same as Volunteer |
+
+Pass `--dry-run` to inspect the current overwrites for each role without making
+any changes.
+
 ## Setup
 
 ### 1. Create a Discord bot
@@ -19,7 +41,7 @@ role is created.
 3. In the left sidebar click **Bot**, then **Reset Token** — save the token
 4. Scroll down and disable **Public Bot**
 5. In the left sidebar click **OAuth2 → URL Generator**
-6. Check the `bot` scope, then check the **Manage Roles** bot permission
+6. Check the `bot` scope, then check the **Manage Roles** and **Manage Channels** bot permissions
 7. Copy the generated URL, open it in your browser, and add the bot to your server
 
 ### 2. Get your server ID
@@ -48,6 +70,18 @@ The bot can only manage roles that sit **below its own role** in the server
 hierarchy. In **Server Settings → Roles**, drag the bot's role above any roles
 you want the script to create or update.
 
+### 5. Bot channel access
+
+`set-folder-permissions.sh` must be able to see and manage every channel in the
+target folder. If the bot's role is denied `View Channel` on a category or any
+child channel — including by a pre-existing `@everyone` overwrite — the script
+will warn and skip that channel rather than updating it.
+
+To ensure full access before running the script, temporarily grant the bot's
+role **View Channel** and **Manage Permissions** overwrites on the category in
+**Server Settings → Channels**, or make sure the bot's role has those
+permissions at the guild level.
+
 ---
 
 ## Running with Nix
@@ -58,18 +92,22 @@ dependencies needed — `curl` and `jq` are provided by the flake.
 **Run directly without installing:**
 
 ```bash
-nix run . -- "2025 Volunteer" "2026 Volunteer"
-nix run . -- "2025 Nonprofit" "2026 Nonprofit"
-nix run . -- "2025 Organizer" "2026 Organizer"
+nix run .#duplicate-role -- "2025 Volunteer" "2026 Volunteer"
+nix run .#duplicate-role -- "2025 Nonprofit" "2026 Nonprofit"
+nix run .#duplicate-role -- "2025 Organizer" "2026 Organizer"
+
+nix run .#set-folder-permissions -- 2026 "Event Channels"
+nix run .#set-folder-permissions -- --dry-run 2026 "Event Channels"
 ```
 
 **Install into your profile:**
 
 ```bash
-nix profile install .
+nix profile install .#duplicate-role
+nix profile install .#set-folder-permissions
+
 duplicate-role "2025 Volunteer" "2026 Volunteer"
-duplicate-role "2025 Nonprofit" "2026 Nonprofit"
-duplicate-role "2025 Organizer" "2026 Organizer"
+set-folder-permissions 2026 "Event Channels"
 ```
 
 **Drop into a dev shell with `curl` and `jq` on your PATH:**
@@ -77,8 +115,8 @@ duplicate-role "2025 Organizer" "2026 Organizer"
 ```bash
 nix develop
 ./duplicate-role.sh "2025 Volunteer" "2026 Volunteer"
-./duplicate-role.sh "2025 Nonprofit" "2026 Nonprofit"
-./duplicate-role.sh "2025 Organizer" "2026 Organizer"
+./set-folder-permissions.sh 2026 "Event Channels"
+./set-folder-permissions.sh --dry-run 2026 "Event Channels"
 ```
 
 ---
@@ -93,10 +131,10 @@ nix develop
 | `curl` | `brew install curl` / `apt install curl` |
 | `jq` | `brew install jq` / `apt install jq` |
 
-**Make the script executable (first time only):**
+**Make the scripts executable (first time only):**
 
 ```bash
-chmod +x duplicate-role.sh
+chmod +x duplicate-role.sh set-folder-permissions.sh
 ```
 
 **Run:**
@@ -105,11 +143,16 @@ chmod +x duplicate-role.sh
 ./duplicate-role.sh "2025 Volunteer" "2026 Volunteer"
 ./duplicate-role.sh "2025 Nonprofit" "2026 Nonprofit"
 ./duplicate-role.sh "2025 Organizer" "2026 Organizer"
+
+./set-folder-permissions.sh 2026 "Event Channels"
+./set-folder-permissions.sh --dry-run 2026 "Event Channels"
 ```
 
 ---
 
 ## Usage
+
+### `duplicate-role`
 
 ```
 duplicate-role <source_role_name> <new_role_name>
@@ -131,3 +174,21 @@ duplicate-role <source_role_name> <new_role_name>
 
 - Channel permission overwrites (stored on channels, not roles)
 - Role position in the hierarchy (new roles are created at the bottom)
+
+### `set-folder-permissions`
+
+```
+set-folder-permissions [--dry-run] <year> <category_name>
+```
+
+| Argument | Description |
+|----------|-------------|
+| `--dry-run` | Print current overwrites for each role without making any changes |
+| `year` | Year prefix used to build role names (e.g. `2026`) |
+| `category_name` | Exact name of the category channel to update |
+
+The script targets three roles — `<year> Organizer`, `<year> Volunteer`, and
+`<year> Nonprofit` — and sets permission overwrites on the category and every
+child channel inside it.
+
+**Bot permissions required:** Manage Roles, Manage Channels
