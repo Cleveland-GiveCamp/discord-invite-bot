@@ -17,21 +17,21 @@
           text = builtins.readFile ./duplicate-role.sh;
         };
 
-        set-folder-permissions = pkgs.writeShellApplication {
-          name = "set-folder-permissions";
+        set-event-folder-permissions = pkgs.writeShellApplication {
+          name = "set-event-folder-permissions";
           runtimeInputs = [ pkgs.curl pkgs.jq ];
-          text = builtins.readFile ./set-folder-permissions.sh;
+          text = builtins.readFile ./set-event-folder-permissions.sh;
         };
       in
       {
         packages = {
-          inherit duplicate-role set-folder-permissions;
+          inherit duplicate-role set-event-folder-permissions;
           default = duplicate-role;
         };
 
         apps = {
-          duplicate-role       = flake-utils.lib.mkApp { drv = duplicate-role; };
-          set-folder-permissions = flake-utils.lib.mkApp { drv = set-folder-permissions; };
+          duplicate-role               = flake-utils.lib.mkApp { drv = duplicate-role; };
+          set-event-folder-permissions = flake-utils.lib.mkApp { drv = set-event-folder-permissions; };
           default = self.apps.${system}.duplicate-role;
         };
 

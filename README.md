@@ -10,16 +10,17 @@ Duplicates a role's permissions to another role by name. If the target role
 already exists its permissions are updated in place. If it does not exist a new
 role is created.
 
-### `set-folder-permissions.sh`
+### `set-event-folder-permissions.sh`
 
 Sets channel permission overwrites for the Organizer, Volunteer, and Nonprofit
 roles on a category (folder) channel and every child channel inside it.
 
-Role names are constructed from the year you provide:
+The category name is automatically set to `<year> Projects`. Role names are
+constructed from the year you provide:
 
-| Argument | Role name |
-|----------|-----------|
-| `2026`   | `2026 Organizer`, `2026 Volunteer`, `2026 Nonprofit` |
+| Argument | Category | Role names |
+|----------|----------|------------|
+| `2026`   | `2026 Projects` | `2026 Organizer`, `2026 Volunteer`, `2026 Nonprofit` |
 
 **Permission sets applied:**
 
@@ -29,8 +30,8 @@ Role names are constructed from the year you provide:
 | Volunteer | View Channel, Send Messages, Embed Links, Attach Files, Read Message History, Add Reactions, Send Messages in Threads |
 | Nonprofit | Same as Volunteer |
 
-Pass `--dry-run` to inspect the current overwrites for each role without making
-any changes.
+Dry-run mode is the default — current overwrites are printed without making any
+changes. Pass `--run` to actually apply the permission overwrites.
 
 ## Setup
 
@@ -72,7 +73,7 @@ you want the script to create or update.
 
 ### 5. Bot channel access
 
-`set-folder-permissions.sh` must be able to see and manage every channel in the
+`set-event-folder-permissions.sh` must be able to see and manage every channel in the
 target folder. If the bot's role is denied `View Channel` on a category or any
 child channel — including by a pre-existing `@everyone` overwrite — the script
 will warn and skip that channel rather than updating it.
@@ -96,18 +97,18 @@ nix run .#duplicate-role -- "2025 Volunteer" "2026 Volunteer"
 nix run .#duplicate-role -- "2025 Nonprofit" "2026 Nonprofit"
 nix run .#duplicate-role -- "2025 Organizer" "2026 Organizer"
 
-nix run .#set-folder-permissions -- 2026 "Event Channels"
-nix run .#set-folder-permissions -- --dry-run 2026 "Event Channels"
+nix run .#set-event-folder-permissions -- 2026
+nix run .#set-event-folder-permissions -- 2026 --run
 ```
 
 **Install into your profile:**
 
 ```bash
 nix profile install .#duplicate-role
-nix profile install .#set-folder-permissions
+nix profile install .#set-event-folder-permissions
 
 duplicate-role "2025 Volunteer" "2026 Volunteer"
-set-folder-permissions 2026 "Event Channels"
+set-event-folder-permissions 2026
 ```
 
 **Drop into a dev shell with `curl` and `jq` on your PATH:**
@@ -115,8 +116,8 @@ set-folder-permissions 2026 "Event Channels"
 ```bash
 nix develop
 ./duplicate-role.sh "2025 Volunteer" "2026 Volunteer"
-./set-folder-permissions.sh 2026 "Event Channels"
-./set-folder-permissions.sh --dry-run 2026 "Event Channels"
+./set-event-folder-permissions.sh 2026
+./set-event-folder-permissions.sh 2026 --run
 ```
 
 ---
@@ -134,7 +135,7 @@ nix develop
 **Make the scripts executable (first time only):**
 
 ```bash
-chmod +x duplicate-role.sh set-folder-permissions.sh
+chmod +x duplicate-role.sh set-event-folder-permissions.sh
 ```
 
 **Run:**
@@ -144,8 +145,8 @@ chmod +x duplicate-role.sh set-folder-permissions.sh
 ./duplicate-role.sh "2025 Nonprofit" "2026 Nonprofit"
 ./duplicate-role.sh "2025 Organizer" "2026 Organizer"
 
-./set-folder-permissions.sh 2026 "Event Channels"
-./set-folder-permissions.sh --dry-run 2026 "Event Channels"
+./set-event-folder-permissions.sh 2026
+./set-event-folder-permissions.sh 2026 --run
 ```
 
 ---
@@ -175,19 +176,19 @@ duplicate-role <source_role_name> <new_role_name>
 - Channel permission overwrites (stored on channels, not roles)
 - Role position in the hierarchy (new roles are created at the bottom)
 
-### `set-folder-permissions`
+### `set-event-folder-permissions`
 
 ```
-set-folder-permissions [--dry-run] <year> <category_name>
+set-event-folder-permissions <year> [--run]
 ```
 
 | Argument | Description |
 |----------|-------------|
-| `--dry-run` | Print current overwrites for each role without making any changes |
-| `year` | Year prefix used to build role names (e.g. `2026`) |
-| `category_name` | Exact name of the category channel to update |
+| `--run` | Apply the permission overwrites (default is dry-run) |
+| `year` | Year prefix used to build role names and the category name (e.g. `2026`) |
 
-The script targets three roles — `<year> Organizer`, `<year> Volunteer`, and
+The category targeted is always `<year> Projects` (e.g. `2026 Projects`). The
+script targets three roles — `<year> Organizer`, `<year> Volunteer`, and
 `<year> Nonprofit` — and sets permission overwrites on the category and every
 child channel inside it.
 

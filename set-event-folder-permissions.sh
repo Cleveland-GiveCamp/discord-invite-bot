@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
-# set-folder-permissions.sh
+# set-event-folder-permissions.sh
 # Sets permission overwrites for the Organizer, Volunteer, and Nonprofit roles
 # on a category channel and every child channel inside it.
+# The category name is automatically set to "<year> Projects".
 #
 # Usage:
-#   ./set-folder-permissions.sh [--dry-run] "<year>" "<category_name>"
+#   ./set-event-folder-permissions.sh [--run] "<year>"
 #
-#   --dry-run  Print current overwrites for each role without making any changes.
+#   Dry-run mode is the default — current overwrites are printed without making
+#   any changes. Pass --run to actually apply the permission overwrites.
 #
 # Examples:
-#   ./set-folder-permissions.sh 2026 "Event Channels"
-#   ./set-folder-permissions.sh --dry-run 2026 "Event Channels"
+#   ./set-event-folder-permissions.sh 2026
+#   ./set-event-folder-permissions.sh 2026 --run
 #
 # Role names are constructed as "<year> Organizer", "<year> Volunteer",
-# and "<year> Nonprofit".
+# and "<year> Nonprofit". The category targeted is "<year> Projects".
 #
 # Permission sets applied:
 #   Organizer   — View, Send, Manage Messages, Manage Threads, Embed Links,
@@ -47,20 +49,20 @@ fi
 
 # ── argument parsing ──────────────────────────────────────────────────────────
 
-DRY_RUN=false
+DRY_RUN=true
 
 args=()
 for arg in "$@"; do
   case "$arg" in
-    --dry-run) DRY_RUN=true ;;
-    *)         args+=("$arg") ;;
+    --run) DRY_RUN=false ;;
+    *)     args+=("$arg") ;;
   esac
 done
 
-[[ ${#args[@]} -ne 2 ]] && die "Usage: $0 [--dry-run] \"<year>\" \"<category_name>\""
+[[ ${#args[@]} -ne 1 ]] && die "Usage: $0 [--run] \"<year>\""
 
 YEAR="${args[0]}"
-CATEGORY_NAME="${args[1]}"
+CATEGORY_NAME="${YEAR} Projects"
 
 ORGANIZER_ROLE="${YEAR} Organizer"
 VOLUNTEER_ROLE="${YEAR} Volunteer"
