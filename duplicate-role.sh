@@ -89,13 +89,12 @@ PAYLOAD=$(jq -n \
   --arg     name        "$NEW_NAME" \
   --arg     permissions "$SOURCE_PERMISSIONS" \
   --argjson color       "$SOURCE_COLOR" \
-  --argjson hoist       "$SOURCE_HOIST" \
   --argjson mentionable "$SOURCE_MENTIONABLE" \
   '{
     name:        $name,
     permissions: $permissions,
     color:       $color,
-    hoist:       $hoist,
+    hoist:       true,
     mentionable: $mentionable
   }')
 
@@ -141,3 +140,21 @@ else
   echo "  Name: ${NEW_NAME}"
   echo "  ID:   ${NEW_ID}"
 fi
+
+# ── disable hoist on source role ─────────────────────────────────────────────
+
+echo ""
+echo "Disabling 'display separately' on source role '${SOURCE_NAME}'..."
+
+HOIST_RESULT=$(curl -sf \
+  -X PATCH \
+  -H "$AUTH" \
+  -H "Content-Type: application/json" \
+  -d '{"hoist":false}' \
+  "${API}/guilds/${DISCORD_SERVER_ID}/roles/${SOURCE_ID}")
+
+if echo "$HOIST_RESULT" | jq -e '.code' &>/dev/null; then
+  die "Discord API error while updating source role: $(echo "$HOIST_RESULT" | jq -r '.message')"
+fi
+
+echo "Done! Source role '${SOURCE_NAME}' hoist disabled."
