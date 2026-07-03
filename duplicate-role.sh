@@ -85,11 +85,13 @@ echo "  Mentionable: ${SOURCE_MENTIONABLE}"
 EXISTING=$(echo "$ROLES" | jq --arg name "$NEW_NAME" \
   '.[] | select(.name == $name)')
 
+[[ "$NEW_NAME" == *"Organizer"* ]] && NEW_MENTIONABLE=true || NEW_MENTIONABLE=false
+
 PAYLOAD=$(jq -n \
   --arg     name        "$NEW_NAME" \
   --arg     permissions "$SOURCE_PERMISSIONS" \
   --argjson color       "$SOURCE_COLOR" \
-  --argjson mentionable "$SOURCE_MENTIONABLE" \
+  --argjson mentionable "$NEW_MENTIONABLE" \
   '{
     name:        $name,
     permissions: $permissions,
@@ -141,20 +143,20 @@ else
   echo "  ID:   ${NEW_ID}"
 fi
 
-# ── disable hoist on source role ─────────────────────────────────────────────
+# ── disable hoist and mentionable on source role ─────────────────────────────
 
 echo ""
-echo "Disabling 'display separately' on source role '${SOURCE_NAME}'..."
+echo "Disabling 'display separately' and '@mention' on source role '${SOURCE_NAME}'..."
 
 HOIST_RESULT=$(curl -sf \
   -X PATCH \
   -H "$AUTH" \
   -H "Content-Type: application/json" \
-  -d '{"hoist":false}' \
+  -d '{"hoist":false,"mentionable":false}' \
   "${API}/guilds/${DISCORD_SERVER_ID}/roles/${SOURCE_ID}")
 
 if echo "$HOIST_RESULT" | jq -e '.code' &>/dev/null; then
   die "Discord API error while updating source role: $(echo "$HOIST_RESULT" | jq -r '.message')"
 fi
 
-echo "Done! Source role '${SOURCE_NAME}' hoist disabled."
+echo "Done! Source role '${SOURCE_NAME}' hoist and mentionable disabled."
