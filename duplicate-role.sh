@@ -85,13 +85,11 @@ echo "  Mentionable: ${SOURCE_MENTIONABLE}"
 EXISTING=$(echo "$ROLES" | jq --arg name "$NEW_NAME" \
   '.[] | select(.name == $name)')
 
-[[ "$NEW_NAME" == *"Organizer"* ]] && NEW_MENTIONABLE=true || NEW_MENTIONABLE=false
-
 PAYLOAD=$(jq -n \
   --arg     name        "$NEW_NAME" \
   --arg     permissions "$SOURCE_PERMISSIONS" \
   --argjson color       "$SOURCE_COLOR" \
-  --argjson mentionable "$NEW_MENTIONABLE" \
+  --argjson mentionable "$SOURCE_MENTIONABLE" \
   '{
     name:        $name,
     permissions: $permissions,
