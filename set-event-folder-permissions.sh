@@ -14,8 +14,9 @@
 #   ./set-event-folder-permissions.sh 2026
 #   ./set-event-folder-permissions.sh 2026 --run
 #
-# Role names are constructed as "<year> Organizer", "<year> Volunteer",
-# and "<year> Nonprofit". The category targeted is "<year> Projects".
+# The Organizer role is always "Event Organizers". Volunteer and Nonprofit
+# role names are constructed as "<year> Volunteer" and "<year> Nonprofit".
+# The category targeted is "<year> Projects".
 #
 # Permission sets applied:
 #   Organizer   — View, Send, Manage Messages, Manage Threads, Embed Links,
@@ -64,7 +65,7 @@ done
 YEAR="${args[0]}"
 CATEGORY_NAME="${YEAR} Projects"
 
-ORGANIZER_ROLE="${YEAR} Organizer"
+ORGANIZER_ROLE="Event Organizers"
 VOLUNTEER_ROLE="${YEAR} Volunteer"
 NONPROFIT_ROLE="${YEAR} Nonprofit"
 
